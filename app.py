@@ -32,6 +32,8 @@ def index():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
+    # 获取当前用户信息
+    user = User.query.get(session['user_id'])
     stats = get_user_statistics(session['user_id'])
 
     # 检查今天是否有任务
@@ -45,7 +47,43 @@ def index():
     if not task:
         task = create_daily_task(session['user_id'])
 
-    return render_template('index.html', stats=stats, task=task)
+    return render_template('index.html', stats=stats, task=task, current_user=user)
+
+
+# ============ 用户注册 ============
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
+
+        # 验证输入
+        if not username or not password:
+            flash('用户名和密码不能为空', 'error')
+        elif len(username) < 3 or len(username) > 20:
+            flash('用户名长度必须在3-20个字符之间', 'error')
+        elif len(password) < 6:
+            flash('密码至少6个字符', 'error')
+        elif password != confirm_password:
+            flash('两次输入的密码不一致', 'error')
+        else:
+            # 检查用户名是否已存在
+            existing_user = User.query.filter_by(username=username).first()
+            if existing_user:
+                flash('该用户名已被注册，请选择其他用户名', 'error')
+            else:
+                # 创建新用户
+                new_user = User(
+                    username=username,
+                    password_hash=generate_password_hash(password)
+                )
+                db.session.add(new_user)
+                db.session.commit()
+                flash('注册成功！请登录', 'success')
+                return redirect(url_for('login'))
+
+    return render_template('register.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
