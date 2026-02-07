@@ -7,50 +7,75 @@ from models import db, Word, UserWord, DailyTask
 def select_daily_words(user_id):
     """
     为用户选择每日单词：5个新词 + 20个老词
+    新用户会直接从词库随机选择25个单词
     """
-    # 1. 选择5个新词（从未学过的单词）
-    new_words = db.session.query(Word.id).filter(
-        ~Word.id.in_(
-            db.session.query(UserWord.word_id).filter(UserWord.user_id == user_id)
-        )
-    ).order_by(Word.id).limit(5).all()
+    # 1. 统计用户已学单词数
+    learned_count = db.session.query(UserWord).filter(UserWord.user_id == user_id).count()
 
-    new_word_ids = [w[0] for w in new_words]
+    if learned_count == 0:
+        # 新用户：直接从词库随机选择25个单词
+        total_words = db.session.query(Word.id).order_by(db.func.random()).limit(25).all()
+        word_ids = [w[0] for w in total_words]
 
-    # 2. 选择20个老词（从已学单词中选择）
-    # 优先级：错误次数多 > 最后复习时间早
-    old_words_query = db.session.query(
-        UserWord.word_id,
-        UserWord.error_count,
-        UserWord.last_reviewed_at
-    ).filter(
-        UserWord.user_id == user_id,
-        UserWord.is_new == False
-    ).order_by(
-        UserWord.error_count.desc(),  # 错误多的优先
-        UserWord.last_reviewed_at.asc()  # 久没复习的优先
-    ).limit(20).all()
+        # 创建用户单词记录（标记为已学习但不熟练）
+        for word_id in word_ids:
+            user_word = UserWord(
+                user_id=user_id,
+                word_id=word_id,
+                mastery_level=1,
+                error_count=0,
+                is_new=False,
+                last_reviewed_at=datetime.utcnow()
+            )
+            db.session.add(user_word)
+        db.session.commit()
 
-    old_word_ids = [w[0] for w in old_words_query]
+        return word_ids
 
-    # 3. 如果老词不足20个，就全部用
-    if len(old_word_ids) < 20:
-        # 补充一些之前学过的单词
-        additional = db.session.query(UserWord.word_id).filter(
+    else:
+        # 老用户：按原逻辑选择
+        # 1. 选择5个新词（从未学过的单词）
+        new_words = db.session.query(Word.id).filter(
+            ~Word.id.in_(
+                db.session.query(UserWord.word_id).filter(UserWord.user_id == user_id)
+            )
+        ).order_by(Word.id).limit(5).all()
+
+        new_word_ids = [w[0] for w in new_words]
+
+        # 2. 选择20个老词（从已学单词中选择）
+        # 优先级：错误次数多 > 最后复习时间早
+        old_words_query = db.session.query(
+            UserWord.word_id,
+            UserWord.error_count,
+            UserWord.last_reviewed_at
+        ).filter(
             UserWord.user_id == user_id,
-            UserWord.is_new == False,
-            ~UserWord.word_id.in_(old_word_ids)
-        ).limit(20 - len(old_word_ids)).all()
-        old_word_ids.extend([w[0] for w in additional])
+            UserWord.is_new == False
+        ).order_by(
+            UserWord.error_count.desc(),  # 错误多的优先
+            UserWord.last_reviewed_at.asc()  # 久没复习的优先
+        ).limit(20).all()
 
-    # 4. 组合并打乱老词顺序
-    word_ids = new_word_ids + old_word_ids
-    random.shuffle(old_word_ids)
+        old_word_ids = [w[0] for w in old_words_query]
 
-    # 5. 返回：5新词 + 20打乱的老词
-    final_order = new_word_ids + old_word_ids
+        # 3. 如果老词不足20个，补充一些之前学过的单词
+        if len(old_word_ids) < 20:
+            additional = db.session.query(UserWord.word_id).filter(
+                UserWord.user_id == user_id,
+                UserWord.is_new == False,
+                ~UserWord.word_id.in_(old_word_ids)
+            ).limit(20 - len(old_word_ids)).all()
+            old_word_ids.extend([w[0] for w in additional])
 
-    return final_order
+        # 4. 组合并打乱老词顺序
+        word_ids = new_word_ids + old_word_ids
+        random.shuffle(old_word_ids)
+
+        # 5. 返回：5新词 + 20打乱的老词
+        final_order = new_word_ids + old_word_ids
+
+        return final_order
 
 
 def create_daily_task(user_id, task_date=None):
