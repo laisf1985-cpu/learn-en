@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}任务完成 - 英语背单词挑战{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <div class="mb-4">
+        <h1 class="text-success">🎉</h1>
+        <h2 class="text-success mb-3">任务完成！</h2>
+        <p class="text-muted">今天的单词任务已全部完成，给自己点个赞！</p>
+    </div>
+
+    <div class="mb-4">
+        <h4>📊 当前进度</h4>
+        <p class="text-muted">30天挑战</p>
+        <h2>第 {{ stats.current_days }} 天</h2>
+        <p>还剩 {{ stats.remaining_days }} 天</p>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">💰 累计奖金</h5>
+            <h3 class="reward">¥{{ stats.total_reward }}</h3>
+            <p class="text-muted small">已完成 {{ stats.completed_challenges }} 个30天挑战</p>
+        </div>
+    </div>
+
+    <a href="{{ url_for('index') }}" class="btn btn-primary w-100">返回首页</a>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}登录 - 英语背单词挑战{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <h2 class="mb-4">👋 欢迎回来</h2>
+    <p class="text-muted">登录开始你的背单词之旅</p>
+
+    <form method="POST" action="{{ url_for('login') }}">
+        <div class="mb-3">
+            <label class="form-label">用户名</label>
+            <input type="text" name="username" class="form-control" placeholder="输入用户名" required autofocus>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">密码</label>
+            <input type="password" name="password" class="form-control" placeholder="输入密码" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">登录</button>
+    </form>
+</div>
+{% endblock %}

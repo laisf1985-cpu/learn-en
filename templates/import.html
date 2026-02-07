@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}导入单词 - 英语背单词挑战{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h4>📥 导入单词</h4>
+    <p class="text-muted">当前词库有 <strong>{{ word_count }}</strong> 个单词</p>
+</div>
+
+<div class="alert alert-info">
+    <strong>格式说明：</strong><br>
+    每行一个单词，用逗号分隔：<br>
+    <code>英文,中文,年级,单元</code><br>
+    <small>示例：apple,苹果,七年级,Unit1</small>
+</div>
+
+<form method="POST">
+    <div class="mb-3">
+        <label class="form-label">粘贴CSV格式的单词数据</label>
+        <textarea name="csv_text"
+                  class="form-control"
+                  rows="15"
+                  placeholder="apple,苹果,七年级,Unit1&#10;banana,香蕉,七年级,Unit1&#10;..."
+                  required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">导入单词</button>
+</form>
+
+<div class="mt-4">
+    <h5>人教版教材单词表示例格式：</h5>
+    <pre class="bg-light p-3 rounded"><code>hello,你好,七年级,Unit1
+goodmorning,早上好,七年级,Unit1
+what,什么,七年级,Unit1
+your,你的,七年级,Unit1
+name,名字,七年级,Unit1</code></pre>
+</div>
+{% endblock %}

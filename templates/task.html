@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}答题 - 英语背单词挑战{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <p class="text-muted mb-2">进度：{{ progress }}</p>
+
+    {% if is_review %}
+        <span class="badge bg-warning">复习词</span>
+    {% else %}
+        <span class="badge bg-primary">新词/学习词</span>
+    {% endif %}
+
+    <div class="word-card">
+        <h3>{{ word.chinese }}</h3>
+    </div>
+
+    <form method="POST" action="{{ url_for('answer') }}">
+        <input type="hidden" name="word_id" value="{{ word.id }}">
+        <input type="hidden" name="is_review" value="{{ is_review }}">
+
+        <div class="mb-3">
+            <input type="text"
+                   name="answer"
+                   class="form-control form-control-lg text-center"
+                   placeholder="输入英文单词"
+                   required
+                   autocomplete="off"
+                   style="text-transform: lowercase;">
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 mb-3">提交答案</button>
+        <button type="button" class="btn btn-light w-100" onclick="document.querySelector('input[name=answer]').focus()">聚焦输入框</button>
+    </form>
+</div>
+
+<script>
+    // 自动聚焦到输入框
+    document.querySelector('input[name=answer]').focus();
+
+    // 提交答案后自动聚焦（用于快速答题）
+    document.querySelector('form').addEventListener('submit', function() {
+        localStorage.setItem('focusOnNext', 'true');
+    });
+
+    // 加载页面后检查是否需要自动聚焦
+    if (localStorage.getItem('focusOnNext') === 'true') {
+        document.querySelector('input[name=answer]').focus();
+        localStorage.removeItem('focusOnNext');
+    }
+</script>
+{% endblock %}

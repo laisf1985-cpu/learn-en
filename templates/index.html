@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 英语背单词挑战{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2>📊 奖金统计</h2>
+    <p class="text-muted">坚持学习，每天进步！</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <p class="card-text text-muted">累计奖金</p>
+                <h4 class="reward">¥{{ stats.total_reward }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <p class="card-text text-muted">已完成周期</p>
+                <h4 class="text-primary">{{ stats.completed_challenges }} 个</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">🎯 当前进度</h5>
+        <p class="card-text">
+            <strong>第 {{ stats.current_days }} 天</strong>
+            （30天挑战）
+        </p>
+        <p class="card-text">
+            还剩 <strong>{{ stats.remaining_days }} 天</strong>
+        </p>
+
+        {% if task %}
+            {% if task.completed %}
+                <a href="{{ url_for('complete') }}" class="btn btn-success w-100">👍 今日任务完成</a>
+            {% else %}
+                <a href="{{ url_for('task') }}" class="btn btn-primary w-100">📝 开始今日任务</a>
+            {% endif %}
+        {% else %}
+            <a href="{{ url_for('task') }}" class="btn btn-primary w-100">📝 开始今日任务</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">📈 学习统计</h5>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between">
+                <span>总学习天数</span>
+                <strong>{{ stats.total_days }} 天</strong>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
