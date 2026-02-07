@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from datetime import datetime, date
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Word, UserWord, DailyTask, ChallengeProgress
-from utils.word_selector import create_daily_task, get_next_word, check_answer
+from utils.word_selector import create_daily_task, get_next_word
 from utils.progress import update_challenge_progress, get_user_statistics
 
 # 获取绝对路径
@@ -171,8 +171,25 @@ def answer():
     user_input = request.form['answer']
     is_review = request.form.get('is_review') == 'True'
 
-    # 检查答案
-    correct, correct_answer = check_answer(session['user_id'], word_id, user_input)
+    # 检查答案（内联实现）
+    word = Word.query.get(word_id)
+    correct = word.english.lower().strip() == user_input.lower().strip()
+
+    # 获取或创建用户单词记录
+    user_word = UserWord.query.filter_by(
+        user_id=session['user_id'],
+        word_id=word_id
+    ).first()
+
+    if user_word:
+        if correct:
+            user_word.mastery_level = min(5, user_word.mastery_level + 1)
+        else:
+            user_word.error_count += 1
+        user_word.last_reviewed_at = datetime.utcnow()
+        db.session.commit()
+
+    correct_answer = word.english
 
     if correct:
         # 答对了
