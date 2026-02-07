@@ -23,25 +23,19 @@
         <input type="hidden" name="answer" value="{% if correct %}{{ user_input }}{% else %}{{ correct_answer }}{% endif %}">
         <input type="hidden" name="is_review" value="{{ 'True' if is_review else 'False' }}">
 
-        <button type="button" class="btn btn-primary w-100 mb-3" onclick="submitForm()">Next -></button>
+        <button type="submit" class="btn btn-primary w-100 mb-3">Next -></button>
     </form>
 
     <p class="text-muted small">Tip: Wrong answers will be added to review queue</p>
 </div>
 
 <script>
-    // Auto submit form
+    // Auto submit form after delay
     setTimeout(function() {
-        submitForm();
-    }, 800);
-
-    function submitForm() {
         const form = document.getElementById('answerForm');
         if (form) {
             form.submit();
-        } else {
-            console.error('Form not found');
         }
-    }
+    }, 800);
 </script>
 {% endblock %}
