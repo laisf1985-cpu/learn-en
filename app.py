@@ -1,4 +1,5 @@
 import os
+import csv
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from datetime import datetime, date
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -234,9 +235,60 @@ def import_words():
 
 # ============ 初始化 ============
 
+def auto_import_words():
+    """自动导入人教版七八九年级单词表"""
+    if Word.query.count() == 0:
+        import csv
+        word_files = [
+            'pep_words_grade7.csv',
+            'pep_words_grade8.csv',
+            'pep_words_grade9.csv'
+        ]
+
+        for filename in word_files:
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    next(reader, None)  # 跳过标题行
+                    count = 0
+                    for row in reader:
+                        if len(row) >= 2:
+                            english = row[0].strip()
+                            chinese = row[1].strip()
+                            grade = row[2].strip() if len(row) > 2 else None
+                            unit = row[3].strip() if len(row) > 3 else None
+
+                            # 检查是否已存在
+                            existing = Word.query.filter_by(english=english).first()
+                            if not existing:
+                                word = Word(
+                                    english=english,
+                                    chinese=chinese,
+                                    grade=grade,
+                                    unit=unit
+                                )
+                                db.session.add(word)
+                                count += 1
+
+                    db.session.commit()
+                    print(f"✅ 已导入 {filename}: {count} 个单词")
+            except FileNotFoundError:
+                print(f"⚠️  文件不存在: {filename}")
+            except Exception as e:
+                print(f"❌ 导入 {filename} 失败: {e}")
+
+        total = Word.query.count()
+        return f"✅ 单词导入完成！词库共有 {total} 个单词"
+    else:
+        return "词库已有单词，跳过自动导入"
+
+
 @app.route('/init')
 def init_admin():
-    """初始化管理员账户"""
+    """初始化管理员账户并自动导入单词"""
+    result_messages = []
+
+    # 创建管理员账户
     if User.query.count() == 0:
         user = User(
             username='admin',
@@ -244,9 +296,15 @@ def init_admin():
         )
         db.session.add(user)
         db.session.commit()
-        return '管理员账户创建成功<br>用户名: admin<br>密码: admin123<br>请登录后立即修改密码！'
+        result_messages.append('✅ 管理员账户创建成功<br>用户名: admin<br>密码: admin123<br>请登录后立即修改密码！')
     else:
-        return '管理员账户已存在'
+        result_messages.append('⚠️ 管理员账户已存在')
+
+    # 自动导入单词
+    import_result = auto_import_words()
+    result_messages.append(f'<br>{import_result}')
+
+    return '<br>'.join(result_messages)
 
 
 if __name__ == '__main__':
