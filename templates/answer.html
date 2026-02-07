@@ -6,33 +6,42 @@
 <div class="text-center">
     {% if correct %}
         <div class="alert alert-success">
-            <h4 class="alert-heading">✅ 正确！</h4>
-            <p class="mb-0">继续加油！</p>
+            <h4 class="alert-heading">Correct!</h4>
+            <p class="mb-0">Keep going!</p>
         </div>
     {% else %}
         <div class="alert alert-danger">
-            <h4 class="alert-heading">❌ 错误</h4>
-            <p class="mb-0">你的答案：{{ user_input }}</p>
-            <p class="mb-0">正确答案：<strong>{{ correct_answer }}</strong></p>
-            <p class="mb-0 text-muted small">该单词已加入复习队列</p>
+            <h4 class="alert-heading">Wrong!</h4>
+            <p class="mb-0">Your answer: {{ user_input }}</p>
+            <p class="mb-0">Correct answer: <strong>{{ correct_answer }}</strong></p>
+            <p class="mb-0 text-muted small">Word added to review queue</p>
         </div>
     {% endif %}
 
-    <form method="POST" action="{{ url_for('answer') }}">
+    <form method="POST" action="{{ url_for('answer') }}" id="answerForm">
         <input type="hidden" name="word_id" value="{{ word_id }}">
         <input type="hidden" name="answer" value="{% if correct %}{{ user_input }}{% else %}{{ correct_answer }}{% endif %}">
-        <input type="hidden" name="is_review" value="{{ is_review }}">
+        <input type="hidden" name="is_review" value="{{ 'True' if is_review else 'False' }}">
 
-        <button type="submit" class="btn btn-primary w-100 mb-3">继续下一个 →</button>
+        <button type="button" class="btn btn-primary w-100 mb-3" onclick="submitForm()">Next -></button>
     </form>
 
-    <p class="text-muted small">💡 提示：答错后，系统会自动用正确答案帮您订正并进入下一题</p>
+    <p class="text-muted small">Tip: Wrong answers will be added to review queue</p>
 </div>
 
 <script>
-    // 自动提交表单
+    // Auto submit form
     setTimeout(function() {
-        document.querySelector('form').submit();
-    }, 1000);
+        submitForm();
+    }, 800);
+
+    function submitForm() {
+        const form = document.getElementById('answerForm');
+        if (form) {
+            form.submit();
+        } else {
+            console.error('Form not found');
+        }
+    }
 </script>
 {% endblock %}
